@@ -184,18 +184,27 @@ class _FinishClassScreenState extends State<FinishClassScreen> {
   Widget build(BuildContext context) {
     if (_scanningQr) return _buildQrScanner();
 
+    final width = MediaQuery.sizeOf(context).width;
+    final isTablet = width >= 700;
+    final horizontalPadding = isTablet ? 24.0 : 16.0;
+    final maxContentWidth = isTablet ? 760.0 : 560.0;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Finish Class'),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+      body: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxContentWidth),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(
+                horizontalPadding, isTablet ? 20 : 16, horizontalPadding, 20),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
               // ── Active session banner ─────────────────────────────────
               _activeSessionBanner(),
 
@@ -280,8 +289,10 @@ class _FinishClassScreenState extends State<FinishClassScreen> {
                 ),
                 onPressed: _canSubmit ? _submit : null,
               ),
-              const SizedBox(height: 16),
-            ],
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
           ),
         ),
       ),
