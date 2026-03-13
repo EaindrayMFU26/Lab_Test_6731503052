@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/class_session.dart';
 import '../services/storage_service.dart';
+import '../theme/app_theme.dart';
 import 'check_in_screen.dart';
 import 'finish_class_screen.dart';
 
@@ -52,11 +53,15 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.fromLTRB(24, 28, 24, 12),
             child: Column(
               children: [
-                const Icon(Icons.school, size: 64, color: Colors.blue),
+                const Icon(Icons.school, size: 64, color: AppColors.primaryRed),
                 const SizedBox(height: 12),
                 const Text(
                   'Smart Class App',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryText,
+                  ),
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
@@ -74,14 +79,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton.icon(
+                  child: OutlinedButton.icon(
                     icon: const Icon(Icons.logout),
                     label: const Text('Finish Class'),
-                    style: ElevatedButton.styleFrom(
+                    style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       textStyle: const TextStyle(fontSize: 16),
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppColors.white,
                     ),
                     onPressed: () => _navigate(const FinishClassScreen()),
                   ),
@@ -96,14 +100,14 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
-                const Icon(Icons.history, size: 18, color: Colors.grey),
+                const Icon(Icons.history, size: 18, color: AppColors.softGold),
                 const SizedBox(width: 6),
                 Text(
                   'Session History (${_sessions.length})',
                   style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Colors.grey),
+                      color: AppColors.secondaryText),
                 ),
               ],
             ),
@@ -114,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text(
                       'No sessions yet.\nCheck in to start!',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: AppColors.secondaryText),
                     ),
                   )
                 : ListView.separated(
@@ -129,15 +133,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: ListTile(
                           leading: CircleAvatar(
                             backgroundColor: isCompleted
-                                ? Colors.green.shade100
-                                : Colors.blue.shade100,
+                                ? AppColors.cream
+                                : AppColors.lightGrayBg,
                             child: Icon(
                               isCompleted
                                   ? Icons.check_circle
                                   : Icons.pending,
                               color: isCompleted
-                                  ? Colors.green
-                                  : Colors.blue,
+                                  ? AppColors.softGold
+                                  : AppColors.primaryRed,
                               size: 20,
                             ),
                           ),
@@ -157,13 +161,13 @@ class _HomeScreenState extends State<HomeScreen> {
                               style: TextStyle(
                                 fontSize: 11,
                                 color: isCompleted
-                                    ? Colors.green.shade800
-                                    : Colors.blue.shade800,
+                                    ? AppColors.softGold
+                                    : AppColors.darkRed,
                               ),
                             ),
                             backgroundColor: isCompleted
-                                ? Colors.green.shade50
-                                : Colors.blue.shade50,
+                                ? AppColors.cream
+                                : AppColors.lightGrayBg,
                             padding: EdgeInsets.zero,
                           ),
                         ),

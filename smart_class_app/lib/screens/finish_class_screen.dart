@@ -6,6 +6,7 @@ import '../models/class_session.dart';
 import '../services/location_service.dart';
 import '../services/storage_service.dart';
 import '../services/firestore_service.dart';
+import '../theme/app_theme.dart';
 
 class FinishClassScreen extends StatefulWidget {
   const FinishClassScreen({super.key});
@@ -121,7 +122,7 @@ class _FinishClassScreenState extends State<FinishClassScreen> {
   void _showSnack(String msg, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(msg),
-      backgroundColor: isError ? Colors.red.shade700 : null,
+      backgroundColor: isError ? AppColors.darkRed : AppColors.primaryRed,
     ));
   }
 
@@ -264,8 +265,8 @@ class _FinishClassScreenState extends State<FinishClassScreen> {
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   textStyle: const TextStyle(fontSize: 16),
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppColors.primaryRed,
+                  foregroundColor: AppColors.white,
                 ),
                 onPressed: _submitting ? null : _submit,
               ),
@@ -284,18 +285,18 @@ class _FinishClassScreenState extends State<FinishClassScreen> {
       return Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.orange.shade50,
-          border: Border.all(color: Colors.orange.shade300),
+          color: AppColors.cream,
+          border: Border.all(color: AppColors.softGold),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.orange.shade700),
+            const Icon(Icons.warning_amber_rounded, color: AppColors.darkRed),
             const SizedBox(width: 8),
             const Expanded(
               child: Text(
                 'No active check-in found.\nPlease check in to a class first.',
-                style: TextStyle(color: Colors.deepOrange),
+                style: TextStyle(color: AppColors.darkRed),
               ),
             ),
           ],
@@ -307,8 +308,8 @@ class _FinishClassScreenState extends State<FinishClassScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.blue.shade50,
-        border: Border.all(color: Colors.blue.shade200),
+        color: AppColors.lightGrayBg,
+        border: Border.all(color: AppColors.softGray),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -316,12 +317,12 @@ class _FinishClassScreenState extends State<FinishClassScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.info_outline, color: Colors.blue.shade700, size: 18),
+              const Icon(Icons.info_outline, color: AppColors.softGold, size: 18),
               const SizedBox(width: 6),
-              Text('Active Session',
+              const Text('Active Session',
                   style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue.shade800)),
+                      color: AppColors.primaryText)),
             ],
           ),
           const SizedBox(height: 6),
@@ -354,10 +355,10 @@ class _FinishClassScreenState extends State<FinishClassScreen> {
         borderRadius: BorderRadius.circular(8),
         side: BorderSide(
           color: _locationMissing
-              ? Colors.red
+              ? AppColors.darkRed
               : captured
-                  ? Colors.green
-                  : Colors.grey.shade300,
+                  ? AppColors.primaryRed
+                  : AppColors.softGray,
         ),
       ),
       child: Padding(
@@ -366,7 +367,7 @@ class _FinishClassScreenState extends State<FinishClassScreen> {
           children: [
             Icon(
               captured ? Icons.location_on : Icons.location_off,
-              color: captured ? Colors.green : Colors.grey,
+              color: captured ? AppColors.primaryRed : AppColors.secondaryText,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -377,8 +378,9 @@ class _FinishClassScreenState extends State<FinishClassScreen> {
                     captured ? 'Location captured' : 'Location not obtained',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color:
-                          captured ? Colors.green.shade800 : Colors.grey,
+                      color: captured
+                          ? AppColors.darkRed
+                          : AppColors.secondaryText,
                     ),
                   ),
                   if (captured)
@@ -387,16 +389,16 @@ class _FinishClassScreenState extends State<FinishClassScreen> {
                       'Lng: ${_position!.longitude.toStringAsFixed(6)}\n'
                       'Accuracy: ±${_position!.accuracy.toStringAsFixed(1)} m',
                       style: const TextStyle(
-                          fontSize: 12, color: Colors.black87),
+                          fontSize: 12, color: AppColors.primaryText),
                     ),
                   if (_locationMissing)
                     const Text('Required – tap Get Location',
-                        style: TextStyle(fontSize: 12, color: Colors.red)),
+                        style: TextStyle(fontSize: 12, color: AppColors.darkRed)),
                 ],
               ),
             ),
             const SizedBox(width: 8),
-            ElevatedButton.icon(
+            OutlinedButton.icon(
               icon: _locationLoading
                   ? const SizedBox(
                       width: 14,
@@ -405,9 +407,10 @@ class _FinishClassScreenState extends State<FinishClassScreen> {
                   : const Icon(Icons.my_location, size: 16),
               label: Text(captured ? 'Refresh' : 'Get Location'),
               onPressed: _locationLoading ? null : _getLocation,
-              style: ElevatedButton.styleFrom(
+              style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 10, vertical: 8),
+                  backgroundColor: AppColors.white,
                   textStyle: const TextStyle(fontSize: 13)),
             ),
           ],
@@ -423,19 +426,20 @@ class _FinishClassScreenState extends State<FinishClassScreen> {
         borderRadius: BorderRadius.circular(8),
         side: BorderSide(
           color: _qrMissing
-              ? Colors.red
+              ? AppColors.darkRed
               : scanned
-                  ? Colors.green
-                  : Colors.grey.shade300,
+                  ? AppColors.softGold
+                  : AppColors.softGray,
         ),
       ),
+      color: AppColors.cream,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(
           children: [
             Icon(
               scanned ? Icons.qr_code : Icons.qr_code_scanner,
-              color: scanned ? Colors.green : Colors.grey,
+              color: scanned ? AppColors.softGold : AppColors.secondaryText,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -446,7 +450,8 @@ class _FinishClassScreenState extends State<FinishClassScreen> {
                     scanned ? 'QR code scanned' : 'QR code not scanned',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: scanned ? Colors.green.shade800 : Colors.grey,
+                      color:
+                          scanned ? AppColors.softGold : AppColors.secondaryText,
                     ),
                   ),
                   if (scanned)
@@ -455,24 +460,25 @@ class _FinishClassScreenState extends State<FinishClassScreen> {
                       style: const TextStyle(
                           fontSize: 13,
                           fontFamily: 'monospace',
-                          color: Colors.black87),
+                          color: AppColors.primaryText),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   if (_qrMissing)
                     const Text('Required – tap Scan QR',
-                        style: TextStyle(fontSize: 12, color: Colors.red)),
+                        style: TextStyle(fontSize: 12, color: AppColors.darkRed)),
                 ],
               ),
             ),
             const SizedBox(width: 8),
-            ElevatedButton.icon(
+            OutlinedButton.icon(
               icon: const Icon(Icons.qr_code_scanner, size: 16),
               label: Text(scanned ? 'Re-scan' : 'Scan QR'),
               onPressed: () => setState(() => _scanningQr = true),
-              style: ElevatedButton.styleFrom(
+              style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 10, vertical: 8),
+                  backgroundColor: AppColors.white,
                   textStyle: const TextStyle(fontSize: 13)),
             ),
           ],
