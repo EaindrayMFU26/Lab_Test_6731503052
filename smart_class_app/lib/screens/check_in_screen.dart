@@ -27,7 +27,10 @@ class _CheckInScreenState extends State<CheckInScreen> {
   String? _qrCode;
   bool _scanningQr = false;
 
-  int _mood = 3; // 1–5
+  int? _mood; // 1–5
+
+  DateTime? _checkInTimePreview;
+  ClassSession? _activeSession;
 
   bool _submitting = false;
 
@@ -42,6 +45,26 @@ class _CheckInScreenState extends State<CheckInScreen> {
     (value: 4, emoji: '🙂', label: 'Positive'),
     (value: 5, emoji: '😄', label: 'Very Positive'),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInitialData();
+    _studentIdController.addListener(() => setState(() {}));
+    _previousTopicController.addListener(() => setState(() {}));
+    _expectedTopicController.addListener(() => setState(() {}));
+  }
+
+  Future<void> _loadInitialData() async {
+    final lastId = await StorageService.getLastStudentId();
+    final active = await StorageService.getLatestOpenSession();
+    if (!mounted) return;
+    setState(() {
+      if (lastId != null) _studentIdController.text = lastId;
+      _activeSession = active;
+      _checkInTimePreview = DateTime.now();
+    });
+  }
 
   @override
   void dispose() {
@@ -77,7 +100,13 @@ class _CheckInScreenState extends State<CheckInScreen> {
       _qrMissing = _qrCode == null;
     });
 
-    if (!formValid || _locationMissing || _qrMissing) return;
+    if (_activeSession != null) {
+      _showSnack('You already have an active session. Finish it first.',
+          isError: true);
+      return;
+    }
+
+    if (!formValid || _locationMissing || _qrMissing || _mood == null) return;
 
     setState(() => _submitting = true);
     try {
@@ -90,10 +119,11 @@ class _CheckInScreenState extends State<CheckInScreen> {
         checkInQr: _qrCode!,
         previousTopic: _previousTopicController.text.trim(),
         expectedTopic: _expectedTopicController.text.trim(),
-        mood: _mood,
+        mood: _mood!,
       );
 
       await StorageService.saveSession(session);
+      await StorageService.saveLastStudentId(session.studentId);
 
       // Do cloud sync in background so navigation is instant after local save.
       unawaited(
@@ -103,7 +133,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
       );
 
       if (mounted) {
-        _showSnack('Check-in successful!');
+        _showSnack('Check-in saved successfully');
         Navigator.pop(context);
       }
     } catch (e) {
@@ -179,7 +209,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Check In to Class'),
+        title: const Text('Check In'),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -189,6 +219,21 @@ class _CheckInScreenState extends State<CheckInScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (_activeSession != null)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.cream,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.softGold),
+                  ),
+                  child: const Text(
+                    'Active session already exists. Please use Finish Class.',
+                    style: TextStyle(color: AppColors.darkRed),
+                  ),
+                ),
+
               // ── Step 1 – Student ID ────────────────────────────────────
               _sectionHeader('1. Student ID', Icons.badge),
               const SizedBox(height: 8),
@@ -210,6 +255,14 @@ class _CheckInScreenState extends State<CheckInScreen> {
               _sectionHeader('2. GPS Location', Icons.location_on),
               const SizedBox(height: 8),
               _locationCard(),
+              const SizedBox(height: 8),
+              Text(
+                'Check-in time: ${_formatDate(_checkInTimePreview ?? DateTime.now())}',
+                style: const TextStyle(
+                  color: AppColors.secondaryText,
+                  fontSize: 12,
+                ),
+              ),
 
               const SizedBox(height: 20),
 
@@ -271,7 +324,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   textStyle: const TextStyle(fontSize: 16),
                 ),
-                onPressed: _submitting ? null : _submit,
+                onPressed: _canSubmit ? _submit : null,
               ),
               const SizedBox(height: 16),
             ],
@@ -462,4 +515,20 @@ class _CheckInScreenState extends State<CheckInScreen> {
       ),
     );
   }
+
+  bool get _canSubmit {
+    return !_submitting &&
+        _activeSession == null &&
+        _studentIdController.text.trim().isNotEmpty &&
+        _position != null &&
+        _qrCode != null &&
+        _previousTopicController.text.trim().isNotEmpty &&
+        _expectedTopicController.text.trim().isNotEmpty &&
+        _mood != null;
+  }
+
+  String _formatDate(DateTime dt) =>
+      '${dt.year}-${_p(dt.month)}-${_p(dt.day)} ${_p(dt.hour)}:${_p(dt.minute)}';
+
+  String _p(int n) => n.toString().padLeft(2, '0');
 }

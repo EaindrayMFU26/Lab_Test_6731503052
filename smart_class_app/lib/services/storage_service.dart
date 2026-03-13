@@ -4,6 +4,7 @@ import '../models/class_session.dart'; // also imports SessionStatus
 
 class StorageService {
   static const _sessionsKey = 'class_sessions';
+  static const _lastStudentIdKey = 'last_student_id';
 
   static Future<List<ClassSession>> getAllSessions() async {
     final prefs = await SharedPreferences.getInstance();
@@ -46,5 +47,17 @@ class StorageService {
     if (active.isEmpty) return null;
     active.sort((a, b) => b.checkInTime.compareTo(a.checkInTime));
     return active.first;
+  }
+
+  static Future<void> saveLastStudentId(String studentId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_lastStudentIdKey, studentId);
+  }
+
+  static Future<String?> getLastStudentId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final id = prefs.getString(_lastStudentIdKey);
+    if (id == null || id.trim().isEmpty) return null;
+    return id;
   }
 }

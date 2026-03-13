@@ -15,6 +15,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<ClassSession> _sessions = [];
 
+  ClassSession? get _activeSession {
+    final active = _sessions
+        .where((s) => s.status == SessionStatus.checkedIn)
+        .toList()
+      ..sort((a, b) => b.checkInTime.compareTo(a.checkInTime));
+    return active.isEmpty ? null : active.first;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -36,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Smart Class Check-in'),
+        title: const Text('Smart Class'),
         centerTitle: true,
         actions: [
           IconButton(
@@ -68,12 +76,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     icon: const Icon(Icons.login),
-                    label: const Text('Check In to Class'),
+                    label: Text(
+                      _activeSession == null ? 'Check In' : 'Resume Active Session',
+                    ),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       textStyle: const TextStyle(fontSize: 16),
                     ),
-                    onPressed: () => _navigate(const CheckInScreen()),
+                    onPressed: _activeSession == null
+                        ? () => _navigate(const CheckInScreen())
+                        : null,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -85,10 +97,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       textStyle: const TextStyle(fontSize: 16),
-                      backgroundColor: AppColors.white,
+                      backgroundColor: _activeSession == null
+                          ? AppColors.white
+                          : AppColors.cream,
                     ),
-                    onPressed: () => _navigate(const FinishClassScreen()),
+                    onPressed: _activeSession == null
+                        ? null
+                        : () => _navigate(const FinishClassScreen()),
                   ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  _activeSession == null
+                      ? 'No active session. Start with Check In.'
+                      : 'Active session found. Please finish it before a new check-in.',
+                  style: const TextStyle(
+                    color: AppColors.secondaryText,
+                    fontSize: 12,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
@@ -150,11 +177,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                           subtitle: Text(
-                            '${_formatDate(s.checkInTime)}  •  '
+                            'Check-in: ${_formatDate(s.checkInTime)}\n'
+                            'Finish: ${s.finishTime != null ? _formatDate(s.finishTime!) : '-'}\n'
                             'Mood: ${s.mood}/5\n'
-                            'QR: ${s.checkInQr}',
+                            'Learned: ${_shorten(s.learnedToday)}',
                           ),
-                          isThreeLine: true,
+                          isThreeLine: false,
                           trailing: Chip(
                             label: Text(
                               isCompleted ? 'Done' : 'Active',
@@ -183,6 +211,11 @@ class _HomeScreenState extends State<HomeScreen> {
   String _formatDate(DateTime dt) =>
       '${dt.year}-${_p(dt.month)}-${_p(dt.day)} '
       '${_p(dt.hour)}:${_p(dt.minute)}';
+
+  String _shorten(String? value) {
+    if (value == null || value.trim().isEmpty) return '-';
+    return value.length <= 22 ? value : '${value.substring(0, 22)}...';
+  }
 
   String _p(int n) => n.toString().padLeft(2, '0');
 }

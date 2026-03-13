@@ -39,6 +39,8 @@ class _FinishClassScreenState extends State<FinishClassScreen> {
   void initState() {
     super.initState();
     _loadActiveSession();
+    _learnedController.addListener(() => setState(() {}));
+    _feedbackController.addListener(() => setState(() {}));
   }
 
   Future<void> _loadActiveSession() async {
@@ -109,7 +111,7 @@ class _FinishClassScreenState extends State<FinishClassScreen> {
       );
 
       if (mounted) {
-        _showSnack('Class finished successfully!');
+        _showSnack('Class completed successfully');
         Navigator.pop(context);
       }
     } catch (e) {
@@ -203,6 +205,14 @@ class _FinishClassScreenState extends State<FinishClassScreen> {
               _sectionHeader('1. GPS Location', Icons.location_on),
               const SizedBox(height: 8),
               _locationCard(),
+              const SizedBox(height: 8),
+              const Text(
+                'Finish time: auto-recorded when submitted',
+                style: TextStyle(
+                  color: AppColors.secondaryText,
+                  fontSize: 12,
+                ),
+              ),
 
               const SizedBox(height: 20),
 
@@ -268,7 +278,7 @@ class _FinishClassScreenState extends State<FinishClassScreen> {
                   backgroundColor: AppColors.primaryRed,
                   foregroundColor: AppColors.white,
                 ),
-                onPressed: _submitting ? null : _submit,
+                onPressed: _canSubmit ? _submit : null,
               ),
               const SizedBox(height: 16),
             ],
@@ -490,6 +500,15 @@ class _FinishClassScreenState extends State<FinishClassScreen> {
   String _formatDate(DateTime dt) =>
       '${dt.year}-${_p(dt.month)}-${_p(dt.day)} '
       '${_p(dt.hour)}:${_p(dt.minute)}';
+
+  bool get _canSubmit {
+    return !_submitting &&
+        _activeSession != null &&
+        _position != null &&
+        _qrCode != null &&
+        _learnedController.text.trim().isNotEmpty &&
+        _feedbackController.text.trim().isNotEmpty;
+  }
 
   String _p(int n) => n.toString().padLeft(2, '0');
 }
