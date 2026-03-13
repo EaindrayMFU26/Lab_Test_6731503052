@@ -1,19 +1,20 @@
 # Product Requirement Document (PRD)
-## Smart Class Check-in & Learning Reflection App
+## Smart Class Check-In and Learning Reflection App
 
-**Course:** 1305216 Mobile Application Development  
-**Date:** March 13, 2026  
+Course: 1305216 Mobile Application Development  
+Date: March 13, 2026
 
 ---
 
 ## 1. Problem Statement
 
-Universities struggle to verify that students are physically present in class and actively engaged in learning. Manual attendance sheets are time-consuming and easily falsified. There is no structured way to capture students' pre-class expectations or post-class reflections, which are valuable for both instructors and students.
+Class attendance needs stronger evidence than manual sign-in, and teachers also need lightweight learning reflection data. The app must prove presence and participation using:
 
-This app solves three problems:
-1. **Attendance fraud** — GPS location + QR code together make it hard to fake presence.
-2. **Engagement tracking** — mood scores and reflection text give instructors insight into class quality.
-3. **Learning continuity** — asking students to recall the previous topic reinforces retention.
+- GPS location
+- QR code scan
+- Pre-class and post-class reflection
+
+The system must support a clean lifecycle from check-in to completion on the same class session record.
 
 ---
 
@@ -21,132 +22,143 @@ This app solves three problems:
 
 | Role | Description |
 |------|-------------|
-| **Student** | Primary user. Checks in at the start of class and checks out at the end. Fills in reflection fields. |
-| **Instructor** *(future scope)* | Reviews attendance and reflection data via Firestore console or a future admin panel. |
+| Student | Primary user. Performs check-in before class and class completion after class. |
+| Instructor (future) | Reviews data in Firestore or a future dashboard. |
 
-**MVP scope:** Student-facing only. No instructor login in this version.
+MVP scope: Student-facing flow only, no authentication screen.
 
 ---
 
 ## 3. Feature List
 
-### Must Have (MVP)
-- [ ] **Check-in screen** — records GPS location, timestamp, and QR scan
-- [ ] **Pre-class reflection form** — previous topic, expected topic, mood (1–5)
-- [ ] **Finish class screen** — records GPS location and QR scan again
-- [ ] **Post-class reflection form** — what was learned, feedback, mood (1–5)
-- [ ] **Local storage** — all data persisted on-device via SharedPreferences
-- [ ] **Firestore sync** — data backed up to Firebase cloud on each save
+### Core MVP Features
 
-### Nice to Have (Post-MVP)
-- [ ] Session history list screen
-- [ ] Instructor dashboard
-- [ ] Login / authentication
-- [ ] Offline queue and sync when network returns
+- Home screen with status-aware actions
+- Check In screen with strict evidence capture
+- Finish Class screen that updates the active session
+- Local storage persistence using SharedPreferences
+- Firebase Firestore integration for cloud backup
+- Session history list on Home
+
+### Validation and Lifecycle Rules
+
+- Only one active session at a time
+- Check-in must be completed before finish
+- Finish updates the same active record (not a new record)
 
 ---
 
 ## 4. User Flow
 
-```
-App Launch
-    │
-    ▼
-Home Screen
-    ├──► [Check In to Class]
-    │         │
-    │         ▼
-    │    Check-In Screen
-    │         ├── Enter Student ID
-    │         ├── Tap "Get GPS"  →  records lat/lng
-    │         ├── Tap "Scan QR"  →  scans class QR code
-    │         ├── Fill: Previous Topic
-    │         ├── Fill: Expected Topic Today
-    │         ├── Set Mood (slider 1–5)
-    │         └── Tap "Submit Check-In"
-    │                   │
-    │                   ▼
-    │            Save to SharedPreferences
-    │            Sync to Firestore
-    │                   │
-    │                   └──► Home Screen
-    │
-    └──► [Finish Class]
-              │
-              ▼
-         Finish Class Screen
-              ├── Tap "Get GPS"  →  records lat/lng
-              ├── Tap "Scan QR"  →  scans class QR code again
-              ├── Fill: What I Learned Today
-              ├── Fill: Feedback for Instructor
-              ├── Set Mood (slider 1–5)
-              └── Tap "Finish Class"
-                        │
-                        ▼
-                 Update latest active session
-                 Sync to Firestore
-                        │
-                        └──► Home Screen
-```
+1. User opens Home.
+2. User taps Check In.
+3. User confirms or enters Student ID.
+4. User gets GPS location.
+5. User scans class QR.
+6. User fills previous topic.
+7. User fills expected topic.
+8. User selects mood (1 to 5).
+9. User taps submit.
+10. App saves one active session locally and starts cloud sync in background.
+11. User later taps Finish Class.
+12. App loads current active session.
+13. User gets GPS again.
+14. User scans QR again.
+15. User fills what was learned and feedback.
+16. User taps finish.
+17. App updates same session with finish evidence and status completed.
 
 ---
 
 ## 5. Data Fields
 
-### ClassSession model
+### ClassSession Model
 
 | Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | String | ✅ | Unique ID (epoch milliseconds) |
-| `studentId` | String | ✅ | Student manually enters their ID |
-| `latitude` | double | ✅ | GPS latitude at check-in |
-| `longitude` | double | ✅ | GPS longitude at check-in |
-| `checkInTime` | DateTime | ✅ | Timestamp when check-in was submitted |
-| `qrCode` | String | ✅ | Raw text value from QR scan |
-| `previousTopic` | String | ✅ | Topic covered in the previous class |
-| `expectedTopic` | String | ✅ | Topic student expects to learn today |
-| `moodBefore` | int (1–5) | ✅ | Mood score before class |
-| `checkOutTime` | DateTime | ❌ | Timestamp when finish-class was submitted |
-| `learnedToday` | String | ❌ | Short text: what was learned |
-| `feedback` | String | ❌ | Feedback about class or instructor |
-| `moodAfter` | int (1–5) | ❌ | Mood score after class |
+|------|------|----------|-------------|
+| id | String | Yes | Unique session id |
+| studentId | String | Yes | Student identifier |
+| checkInTime | DateTime | Yes | Check-in timestamp |
+| checkInLat | double | Yes | Check-in latitude |
+| checkInLng | double | Yes | Check-in longitude |
+| checkInQr | String | Yes | Raw QR text at check-in |
+| previousTopic | String | Yes | Topic from previous class |
+| expectedTopic | String | Yes | Expected topic today |
+| mood | int (1-5) | Yes | Mood before class |
+| status | enum | Yes | checkedIn or completed |
+| finishTime | DateTime? | No | Finish timestamp |
+| finishLat | double? | No | Finish latitude |
+| finishLng | double? | No | Finish longitude |
+| finishQr | String? | No | Raw QR text at finish |
+| learnedToday | String? | No | Learning reflection |
+| feedback | String? | No | Feedback text |
 
-### Mood Scale
+### Additional Local Preference Field
 
-| Score | Label |
-|-------|-------|
-| 1 | 😡 Very Negative |
-| 2 | 🙁 Negative |
-| 3 | 😐 Neutral |
-| 4 | 🙂 Positive |
-| 5 | 😄 Very Positive |
-
----
-
-## 6. Tech Stack
-
-| Layer | Technology | Reason |
-|-------|-----------|--------|
-| UI framework | Flutter 3.x (Dart) | Cross-platform, required by course |
-| GPS / location | `geolocator` | Cross-platform geolocation with permission handling |
-| QR scanning | `mobile_scanner` | Camera-based QR/barcode scanning |
-| Local storage | `shared_preferences` | Simple key-value store, fast for MVP |
-| Database (optional) | `sqflite` | SQLite for structured queries if needed post-MVP |
-| Cloud storage | `cloud_firestore` | Real-time NoSQL, easy Firebase integration |
-| Firebase init | `firebase_core` | Required base package for all Firebase services |
-| Hosting | Firebase Hosting | Deploys Flutter web build for Part 4 |
+| Field | Type | Description |
+|------|------|-------------|
+| lastStudentId | String | Last used Student ID for auto-fill |
 
 ---
 
-## 7. Design Assumptions & Engineering Decisions
+## 6. Validation Rules
 
-These assumptions were made to fill gaps in the draft requirements:
+### Check In Submit Requirements
 
-1. **One active session per student at a time** — a student cannot check in twice without finishing the first session. The latest unclosed session is used when finishing class.
-2. **QR code stores raw text** — the app stores whatever text is encoded in the QR code without parsing. The instructor is responsible for encoding a meaningful class identifier.
-3. **Mood is an integer 1–5** — represented as a slider in the UI, stored as an integer in both local storage and Firestore.
-4. **Check-in must happen before finish** — the finish-class screen looks up the latest session with no `checkOutTime`. If none exists, an error is shown.
-5. **Local storage is the source of truth for MVP** — SharedPreferences stores all sessions on-device. Firestore is a cloud backup and is optional for the app to function.
-6. **Firestore sync is best-effort** — if Firestore write fails, an error is shown but local data is preserved.
-7. **No login screen for MVP** — the student manually types their ID. Authentication is deferred to a future version.
-8. **Location is recorded at submission time** — GPS is fetched when the user taps "Get GPS", not automatically in the background.
+- No active session exists
+- Student ID is not empty
+- GPS is captured
+- QR is scanned
+- Previous topic is filled
+- Expected topic is filled
+- Mood is selected
+
+### Finish Class Submit Requirements
+
+- Active session exists
+- GPS is captured
+- QR is scanned
+- Learned today is filled
+- Feedback is filled
+
+---
+
+## 7. Tech Stack
+
+| Layer | Technology | Purpose |
+|------|------------|---------|
+| UI | Flutter (Dart) | Cross-platform mobile/web app |
+| GPS | geolocator | Capture location evidence |
+| QR scanner | mobile_scanner | Read class QR values |
+| Local storage | shared_preferences | MVP persistence and last student id |
+| Cloud | firebase_core + cloud_firestore | Cloud sync and storage |
+| Deployment | Firebase Hosting | Publish web build |
+
+---
+
+## 8. Storage and Sync Strategy
+
+- Local storage is the source of truth for MVP reliability.
+- Firestore sync is best-effort and non-blocking.
+- Submit returns user to Home immediately after local save.
+- Slow network does not block lifecycle completion.
+
+---
+
+## 9. UI and Interaction Decisions
+
+- Home buttons are state-aware:
+    - No active session: Check In enabled, Finish Class disabled
+    - Active session exists: Check In disabled, Finish Class enabled
+- Timestamp evidence is visible on forms:
+    - Check-in time preview on Check In screen
+    - Finish-time note on Finish screen
+- GPS and QR values are shown clearly as attendance evidence.
+
+---
+
+## 10. Deployment Notes
+
+- Firebase project: smartclass-e607d
+- Hosting URL: https://smartclass-e607d.web.app
+- Source repository: https://github.com/EaindrayMFU26/Lab_Test_6731503052

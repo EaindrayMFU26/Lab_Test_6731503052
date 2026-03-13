@@ -1,37 +1,53 @@
 # AI Usage Report
 
-## AI Tools Used
+## 1. AI Tools Used
 
 - GitHub Copilot in VS Code (model: GPT-5.3-Codex)
-- Flutter and Firebase official CLI tools for project setup and deployment
+- Flutter CLI
+- Firebase CLI
+- FlutterFire CLI
 
-## What AI Generated
+## 2. What AI Helped Generate
 
-AI assistance was used to generate and structure:
-- Flutter project scaffolding workflow and setup steps
-- App architecture and folder structure
-- Screen implementations:
+AI assistance was used for:
+
+- Project scaffolding and package setup
+- Suggested folder structure and service layering
+- Initial implementation of:
   - Home screen
-  - Check-in screen
-  - Finish class screen
-- Data model (`ClassSession`) and serialization logic
-- Local storage service (SharedPreferences CRUD flow)
-- Firestore integration service and sync calls
-- Firebase Hosting deployment configuration
-- Documentation drafts for README and PRD support
+  - Check In screen
+  - Finish Class screen
+- ClassSession model and map/json conversion methods
+- SharedPreferences storage flow (save, list, update, latest open session)
+- Firestore service wiring and Firebase Hosting setup
+- Documentation drafts for README and PRD
 
-## What Was Built or Adjusted Manually
+## 3. What Was Decided and Refined by Developer Judgment
 
-The following engineering choices and refinements were applied through human-driven decisions during implementation:
-- Requirement interpretation from incomplete exam brief
-- Field naming and status workflow (`checkedIn`, `completed`)
-- Validation rules and submit constraints (GPS, QR, required text fields)
-- UX improvements for faster submission behavior
-- Save flow optimization to prioritize local storage and make cloud sync non-blocking
-- Final deployment verification and live URL confirmation
+The following were refined through manual direction and iteration:
 
-## Verification Performed
+- Final product flow and lifecycle logic:
+  - one active session at a time
+  - check in first, finish later on same record
+- Stronger validation behavior and disabled-submit conditions
+- Timestamp evidence visibility on form screens
+- State-aware Home button behavior (Check In vs Finish availability)
+- Session history improvements (check-in time, finish time, summary details)
+- Non-blocking cloud sync so local save is instant
+- UI restyling to MFU-inspired red, beige, and neutral palette
 
-- Static checks with `flutter analyze` (project source)
-- Web build validation with `flutter build web --release`
-- Firebase Hosting deployment and live URL response verification
+## 4. Responsibility and Review
+
+- AI output was reviewed, edited, and tested before finalizing.
+- Business rules and final behavior were accepted only after matching the exam requirements.
+
+## 5. Verification Performed
+
+- Static analysis on app source: flutter analyze lib
+- Web production build: flutter build web --release
+- Firebase Hosting deploy verification (HTTP 200)
+
+## 6. Final Delivery References
+
+- Firebase URL: https://smartclass-e607d.web.app
+- GitHub repository: https://github.com/EaindrayMFU26/Lab_Test_6731503052
